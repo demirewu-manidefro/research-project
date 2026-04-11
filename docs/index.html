@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent YouTube Analytics System - Documentation</title>
+    <meta name="description" content="Documentation for the Intelligent YouTube Sentiment, Emotion, and Engagement Analysis System.">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="background-effects">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+    </div>
+
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-chart-pie"></i> YT-Analyzer AI
+        </div>
+        <ul class="nav-links">
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#tech">Technologies</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+        </ul>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content">
+            <span class="badge">Project Documentation</span>
+            <h1>Intelligent YouTube Sentiment, Emotion, and Engagement Analysis System</h1>
+            <p>Transforming raw YouTube comment data into actionable business intelligence through Deep Learning and Google Gemini AI.</p>
+            <a href="#overview" class="cta-button">Explore Documentation <i class="fa-solid fa-arrow-down"></i></a>
+        </div>
+    </header>
+
+    <main>
+        <section id="overview" class="doc-section reveal">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-book-open text-gradient"></i> 1. Overview</h2>
+            </div>
+            <div class="glass-card">
+                <p>This system is a high-performance web application designed to transform raw YouTube comment data into actionable business intelligence. By leveraging a specialized Deep Learning model for Amharic and Google Gemini AI, the system provides content creators with deep insights into audience behavior, emotional trends, and content virality.</p>
+                <p>Unlike standard tools, this system is optimized for "low-resource" linguistic environments and offers real-time monitoring to detect audience shifts as they happen.</p>
+            </div>
+        </section>
+
+        <section id="features" class="doc-section reveal">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-gears text-gradient"></i> 2. System Functionalities</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="icon-wrapper"><i class="fa-solid fa-check-double"></i></div>
+                    <h3>2.1 Sentiment Analysis</h3>
+                    <p>At the core of the system is a <strong>Bidirectional LSTM</strong> neural network classifying Amharic and English comments into:</p>
+                    <ul>
+                        <li><span class="tag tag-positive">Positive</span> Praise, support.</li>
+                        <li><span class="tag tag-negative">Negative</span> Criticism, dissatisfaction.</li>
+                        <li><span class="tag tag-neutral">Neutral</span> Inquiries, factual statements.</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon-wrapper"><i class="fa-solid fa-fire"></i></div>
+                    <h3>2.2 Emotion Detection</h3>
+                    <p>Goes beyond polarity to identify Joy, Anger, and Sadness using complex emoji-based rules and text-pattern matching tuned for Ethiopian expressions.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon-wrapper"><i class="fa-solid fa-rotate"></i></div>
+                    <h3>2.3 Real-Time Monitoring</h3>
+                    <p>Dynamic fetching mechanism pulls the latest comments via the YouTube Data API. Results update seamlessly without refreshing.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon-wrapper"><i class="fa-solid fa-rocket"></i></div>
+                    <h3>2.4 Virality Prediction</h3>
+                    <p>Calculates a Success Probability Score based on sentiment velocity, comment-to-view ratios, and engagement spikes.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon-wrapper"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <h3>2.5 Intelligent Alert System</h3>
+                    <p>Proactive warnings when negative sentiment exceeds 40% or sudden "toxicity" spikes are detected.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon-wrapper"><i class="fa-solid fa-chart-column"></i></div>
+                    <h3>2.6 Multi-Video Comparison</h3>
+                    <p>Strategic benchmarking tool that ranks content using the Sentiment Performance Index (SPI), identifying top Content Pillars.</p>
+                </div>
+
+                <div class="feature-card feature-card-large">
+                    <div class="icon-wrapper"><i class="fa-solid fa-robot"></i></div>
+                    <h3>2.7 Smart Insights (Google Gemini)</h3>
+                    <p>Integrates <strong>Google Gemini Pro</strong> to provide executive summaries. Gemini analyzes clusters of comments identified by the LSTM model and generates professional recommendations in Amharic.</p>
+                </div>
+
+                <div class="feature-card feature-card-large">
+                    <div class="icon-wrapper"><i class="fa-solid fa-lock"></i></div>
+                    <h3>2.8 Trial-Based Access System</h3>
+                    <p>Tiered access control ensuring sustainable resource management. Free users are limited to a set number of analyses with subscription upgrade flows in the backend.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="tech" class="doc-section reveal">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-screwdriver-wrench text-gradient"></i> 3. Tools and Technologies</h2>
+            </div>
+            <div class="tech-stack glass-card">
+                <div class="tech-category">
+                    <h4><i class="fa-brands fa-react"></i> Frontend (UI/UX)</h4>
+                    <p>React.js (HTML5, CSS3, JavaScript ES6+). A modern, responsive interface for high-speed data visualization.</p>
+                </div>
+                <div class="tech-category">
+                    <h4><i class="fa-solid fa-server"></i> Backend (API)</h4>
+                    <p>FastAPI. High-performance Python framework for asynchronous requests, model inference, and routing.</p>
+                </div>
+                <div class="tech-category">
+                    <h4><i class="fa-solid fa-brain"></i> Intelligence Engine</h4>
+                    <p>TensorFlow/Keras (Bidirectional LSTM). Custom-trained for Amharic sentiment detection.</p>
+                </div>
+                <div class="tech-category">
+                    <h4><i class="fa-solid fa-sparkles"></i> Generative AI</h4>
+                    <p>Google Gemini API. Multilingual summarization and strategic recommendations.</p>
+                </div>
+                <div class="tech-category">
+                    <h4><i class="fa-solid fa-database"></i> Data & External Data</h4>
+                    <p>Pandas & NumPy for data processing. YouTube Data API v3 for ingestion.</p>
+                </div>
+                <div class="tech-category">
+                    <h4><i class="fa-solid fa-chart-line"></i> Visualization</h4>
+                    <p>Chart.js / Recharts integrated within React.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="doc-section reveal">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-sitemap text-gradient"></i> 4. System Architecture</h2>
+            </div>
+            <div class="architecture-flow glass-card">
+                <div class="flow-step">
+                    <div class="step-num">01</div>
+                    <div class="step-desc">
+                        <h4>User Layer</h4>
+                        <p>User enters a YouTube URL into the React frontend.</p>
+                    </div>
+                </div>
+                <div class="flow-divider"><i class="fa-solid fa-arrow-down"></i></div>
+                <div class="flow-step">
+                    <div class="step-num">02</div>
+                    <div class="step-desc">
+                        <h4>Request & Extraction Layer</h4>
+                        <p>React sends an asynchronous request to the FastAPI backend, which triggers the YouTube Data API.</p>
+                    </div>
+                </div>
+                <div class="flow-divider"><i class="fa-solid fa-arrow-down"></i></div>
+                <div class="flow-step active-step">
+                    <div class="step-num">03</div>
+                    <div class="step-desc">
+                        <h4>Processing Layer</h4>
+                        <p>Text cleaned and tokenized. LSTM predicts sentiment. Rule-based engines detect emotions and predict virality.</p>
+                    </div>
+                </div>
+                <div class="flow-divider"><i class="fa-solid fa-arrow-down"></i></div>
+                <div class="flow-step">
+                    <div class="step-num">04</div>
+                    <div class="step-desc">
+                        <h4>Intelligence & Response Layer</h4>
+                        <p>Gemini AI generates summary. Structured JSON sent back to React for visualization.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="methodology" class="doc-section reveal">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-lightbulb text-gradient"></i> 5. Methodology: Hybrid Intelligence</h2>
+            </div>
+            <div class="glass-card table-container">
+                <p class="mb-4">One of the system's most professional features is its Hybrid Architecture:</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Methodology</th>
+                            <th>Reason for Choice</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Sentiment Analysis</strong></td>
+                            <td>Deep Learning (LSTM)</td>
+                            <td>Handles complex linguistic context and grammar of Amharic over basic lexicons.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Emotion Detection</strong></td>
+                            <td>Rule-Based (Emojis)</td>
+                            <td>Faster than ML; emojis provide 90% accuracy in emotional intent on social media.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Alerts/Virality</strong></td>
+                            <td>Mathematical Formulas</td>
+                            <td>Rule-based logic provides "Explainable AI" that content creators can trust.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Summarization</strong></td>
+                            <td>Generative AI (Gemini)</td>
+                            <td>Best-in-class performance for Amharic translation and creative reasoning.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="summary" class="doc-section reveal pb-8">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-flag-checkered text-gradient"></i> 6. Summary</h2>
+            </div>
+            <div class="glass-card highlight-card">
+                <p>The <strong>Intelligent YouTube Sentiment, Emotion, and Engagement Analysis System</strong> represents a significant advancement in localized social media analytics. By combining the precision of Deep Learning with the speed of FastAPI and the visual power of React, the system provides a comprehensive, real-time environment for modern content strategy.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 YouTube Intelligence Analysis System | Powered by Gemini AI</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
