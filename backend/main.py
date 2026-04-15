@@ -59,21 +59,33 @@ def get_video_id(url: str):
 def fetch_real_youtube_comments(youtube_url: str, max_comments: int = 500):
     try:
         downloader = YoutubeCommentDownloader()
-        # Sort by recent to simulate real-time monitoring of the latest feedback
-        comments_generator = downloader.get_comments_from_url(youtube_url, sort_by=SORT_BY_RECENT)
+        # Fallback to default sorting if SORT_BY_RECENT fails or for broader compatibility
+        try:
+            comments_generator = downloader.get_comments_from_url(youtube_url, sort_by=SORT_BY_RECENT)
+        except:
+            print("Recent sort failed, falling back to relevance sort.")
+            comments_generator = downloader.get_comments_from_url(youtube_url)
+            
         comments = []
-        
-        # If max_comments is 0, fetch as many as possible (capped at 1000 for safety)
         limit = max_comments if max_comments > 0 else 1000
         
         for comment in islice(comments_generator, limit):
             comments.append(comment['text'])
         
+        if not comments:
+             # Final attempt: try common short URL format if full URL failed
+             if "watch?v=" in youtube_url:
+                 video_id = youtube_url.split("watch?v=")[1].split("&")[0]
+                 alt_url = f"https://youtu.be/{video_id}"
+                 comments_generator = downloader.get_comments_from_url(alt_url)
+                 for comment in islice(comments_generator, limit):
+                    comments.append(comment['text'])
+
         print(f"Successfully fetched {len(comments)} comments.")
         return comments
     except Exception as e:
         print(f"YouTube Fetch Error: {e}")
-        raise HTTPException(status_code=400, detail="Could not fetch comments. Make sure the video is public and has comments enabled.")
+        return []
 
 import re
 
@@ -116,12 +128,11 @@ def clean_amharic_text(text):
     
     return text
 
-def predict_sentiment(texts):
+def predict_sentiment(cleaned_texts):
     if not model or not tokenizer:
-        return [np.random.choice(["Positive", "Negative", "Neutral"]) for _ in texts]
+        return [np.random.choice(["Positive", "Negative", "Neutral"]) for _ in cleaned_texts]
     
     # Real Model Inference with Cleaning
-    cleaned_texts = [clean_amharic_text(t) for t in texts]
     sequences = tokenizer.texts_to_sequences(cleaned_texts)
     # Most Jupyter-trained LSTMs use padding, assuming 100 from earlier tests.
     padded = pad_sequences(sequences, maxlen=100, padding='post', truncating='post')
@@ -218,12 +229,26 @@ def get_gemini_intelligence(positive, negative, neutral, raw_comments):
 
 def process_single_video(url: str, max_comments: int):
     video_id = get_video_id(url)
-    comments = fetch_real_youtube_comments(url, max_comments)
+    raw_comments = fetch_real_youtube_comments(url, max_comments)
     
-    if not comments:
-        raise HTTPException(status_code=400, detail="No comments found for this video.")
+    if not raw_comments:
+        raise HTTPException(status_code=400, detail="Could not retrieve comments. Please verify the video is public, has comments enabled, and the URL is correct.")
         
-    sentiments = predict_sentiment(comments)
+    # Apply ALL cleaning steps from Cell 22
+    cleaned_comments = [clean_amharic_text(c) for c in raw_comments]
+    
+    # Store pairs of (original, cleaned) for analysis
+    comment_pairs = []
+    for raw, cleaned in zip(raw_comments, cleaned_comments):
+        if cleaned.strip() != '':
+            comment_pairs.append({"raw": raw, "cleaned": cleaned})
+    
+    if not comment_pairs:
+        # If no Amharic comments found, we provide a more specific error
+        raise HTTPException(status_code=400, detail="No Amharic comments detected in this video. The system only analyzes Amharic text.")
+        
+    final_cleaned_texts = [p['cleaned'] for p in comment_pairs]
+    sentiments = predict_sentiment(final_cleaned_texts)
     
     positive_count = negative_count = neutral_count = 0
     for sentiment in sentiments:
@@ -236,26 +261,21 @@ def process_single_video(url: str, max_comments: int):
     
     total = len(sentiments) or 1
     
-    # Get Intelligent Insights and AI-powered comment analysis for samples
-    intelligence = get_gemini_intelligence(positive_count, negative_count, neutral_count, comments[:25])
+    # Get Intelligent Insights using cleaned data
+    intelligence = get_gemini_intelligence(positive_count, negative_count, neutral_count, final_cleaned_texts[:30])
     
     # Intelligent Virality Score
     base_virality = int((positive_count / total) * 100)
     virality_score = base_virality + intelligence.get("ai_virality_adjustment", 0)
     virality_score = max(0, min(100, virality_score))
     
-    # Real-world adjustment: If Gemini detects high positive sentiment in samples 
-    # that LSTM missed (like religious blessings), we adjust the counts for display.
     ai_samples = intelligence.get("sample_analysis", [])
     ai_pos = sum(1 for s in ai_samples if s['sentiment'] == 'Positive')
-    ai_neg = sum(1 for s in ai_samples if s['sentiment'] == 'Negative')
     
-    # If AI detects significantly more positivity in the sample than LSTM
     if len(ai_samples) > 0:
         ai_pos_ratio = ai_pos / len(ai_samples)
         lstm_pos_ratio = positive_count / total
         if ai_pos_ratio > lstm_pos_ratio + 0.2:
-            # Boost positive count to reflect AI's deeper understanding
             positive_count = int(total * ai_pos_ratio)
             neutral_count = total - positive_count - negative_count
 
