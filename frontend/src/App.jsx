@@ -22,7 +22,7 @@ function App() {
     setError(null);
     setData(null);
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/analyze', {
+      const response = await axios.post('http://127.0.0.1:8001/api/analyze', {
         youtube_url: url,
         max_comments: 100
       });
@@ -46,7 +46,7 @@ function App() {
     setError(null);
     setCompareData(null);
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/compare', {
+      const response = await axios.post('http://127.0.0.1:8001/api/compare', {
         youtube_urls: urls,
         max_comments: 50 // less comments for speed on multiple
       });
@@ -118,8 +118,11 @@ function App() {
       )}
 
       {error && (
-        <div className="alert-banner" style={{marginBottom: '2rem'}}>
-          <AlertTriangle /> {error}
+        <div className="alert-banner" style={{marginBottom: '2rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--negative)', color: 'var(--negative)', padding: '1rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+          <AlertTriangle size={20} /> 
+          <div>
+            <strong>Intelligence Engine Error:</strong> {error}
+          </div>
         </div>
       )}
 
@@ -136,6 +139,14 @@ function App() {
             <h3>Virality Score</h3>
             <div className="value score">{data.virality_score}/100</div>
             <p className="stat-desc">Success Probability</p>
+          </div>
+
+          <div className="glass-panel stat-card" style={{animationDelay: '0.3s'}}>
+            <h3>Last Updated</h3>
+            <div className="value" style={{fontSize: '1rem'}}>
+              {new Date(data.analysis_timestamp).toLocaleTimeString()}
+            </div>
+            <p className="stat-desc">Real-time Monitoring</p>
           </div>
 
           <div className="glass-panel stat-card" style={{animationDelay: '0.3s'}}>
@@ -170,8 +181,30 @@ function App() {
           </div>
 
           <div className="glass-panel gemini-insight" style={{animationDelay: '0.6s'}}>
-            <h3><Sparkles size={20} /> Gemini Smart Instructions</h3>
-            <p style={{lineHeight: 1.8, fontSize: '0.95rem', whiteSpace: 'pre-wrap'}}>{data.gemini_summary}</p>
+            <h3><Sparkles size={20} /> AI Intelligent Insights</h3>
+            
+            <div className="intelligence-section">
+              <h4>Executive Summary</h4>
+              <p>{data.intelligence?.summary}</p>
+            </div>
+
+            <div className="intelligence-section">
+              <h4>Key Themes</h4>
+              <div style={{display:'flex', gap:'0.5rem', flexWrap:'wrap', marginTop:'0.5rem'}}>
+                {data.intelligence?.themes?.map((theme, i) => (
+                  <span key={i} className="badge Neutral">{theme}</span>
+                ))}
+              </div>
+            </div>
+
+            <div className="intelligence-section" style={{marginTop:'1.5rem'}}>
+              <h4>Strategic Recommendations</h4>
+              <ul style={{marginTop:'0.5rem', paddingLeft:'1.2rem'}}>
+                {data.intelligence?.recommendations?.map((rec, i) => (
+                  <li key={i} style={{marginBottom:'0.5rem', color:'#cbd5e1'}}>{rec}</li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           <div className="glass-panel comments-list" style={{animationDelay: '0.7s'}}>

@@ -7,3 +7,4 @@ google-generativeai
 pydantic
 python-dotenv
 google-api-python-client
+youtube-comment-downloader

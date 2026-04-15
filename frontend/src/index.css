@@ -96,6 +96,25 @@ h1, h2, h3, h4 {
   color: var(--primary);
 }
 
+.intelligence-section h4 {
+  color: var(--primary);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+  margin-top: 1rem;
+}
+
+.intelligence-section p {
+  line-height: 1.6;
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+.intelligence-section:first-child h4 {
+  margin-top: 0;
+}
+
 .search-section {
   display: flex;
   justify-content: center;
