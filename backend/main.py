@@ -56,14 +56,20 @@ def get_video_id(url: str):
         return url.split("youtu.be/")[1][:11]
     return url
 
-def fetch_real_youtube_comments(youtube_url: str, max_comments: int = 100):
+def fetch_real_youtube_comments(youtube_url: str, max_comments: int = 500):
     try:
         downloader = YoutubeCommentDownloader()
         # Sort by recent to simulate real-time monitoring of the latest feedback
         comments_generator = downloader.get_comments_from_url(youtube_url, sort_by=SORT_BY_RECENT)
         comments = []
-        for comment in islice(comments_generator, max_comments):
+        
+        # If max_comments is 0, fetch as many as possible (capped at 1000 for safety)
+        limit = max_comments if max_comments > 0 else 1000
+        
+        for comment in islice(comments_generator, limit):
             comments.append(comment['text'])
+        
+        print(f"Successfully fetched {len(comments)} comments.")
         return comments
     except Exception as e:
         print(f"YouTube Fetch Error: {e}")
@@ -96,6 +102,7 @@ def detect_emotion(text):
 def get_gemini_intelligence(positive, negative, neutral, raw_comments):
     genai_key = os.getenv("GEMINI_API_KEY")
     if not genai_key:
+        print("Error: GEMINI_API_KEY not found in environment.")
         return {
             "summary": "ማስጠንቀቂያ፡ የጂሚናይ ኤፒአይ ቁልፍ አልተገኘም።",
             "themes": [],
@@ -104,50 +111,67 @@ def get_gemini_intelligence(positive, negative, neutral, raw_comments):
             "sample_analysis": []
         }
     
-    genai.configure(api_key=genai_key)
-    gem_model = genai.GenerativeModel('gemini-1.5-flash')
-    
-    comments_text = "\n".join([f"- {c}" for c in raw_comments])
-    
-    prompt = f"""
-    You are an Expert Amharic Social Media Intelligence Engine. Analyze this YouTube data:
-    - Sentiment Stats (from LSTM): {positive} Positive, {negative} Negative, {neutral} Neutral.
-    - Recent Comments for Deep Contextual Analysis:
-    {comments_text}
-    
-    Instructions:
-    1. Look beyond the raw stats. If comments are full of "Amen", "Blessings", or "Congrats", classify them as high-passion Positive.
-    2. Identify specific Amharic cultural context in the comments.
-    
-    Return a JSON object with exactly these keys:
-    1. "summary": A brief (2-sentence) executive summary in Amharic explaining the overall audience mood.
-    2. "themes": A list of 3-4 recurring themes or topics mentioned in the comments (in Amharic).
-    3. "recommendations": A list of 3 professional, actionable tips for the content creator (in Amharic).
-    4. "ai_virality_adjustment": A number between -20 and +20 based on the intensity of comments. 
-    5. "sample_analysis": A list of objects for the first 10 comments provided. Each object MUST have:
-       - "text": The original comment text.
-       - "sentiment": One of "Positive", "Negative", or "Neutral" (Be accurate based on context).
-       - "emotion": One of "Joy", "Anger", "Sadness", "Fear", "Surprise", or "Neutral".
-    
-    Return ONLY valid JSON.
-    """
     try:
+        genai.configure(api_key=genai_key)
+        # Using 1.5-flash as it is more stable and has higher rate limits for this type of task
+        gem_model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        # Take a representative sample from across the comments
+        sample_size = min(len(raw_comments), 30)
+        step = max(1, len(raw_comments) // sample_size)
+        representative_comments = raw_comments[::step][:sample_size]
+        
+        comments_text = "\n".join([f"- {c}" for c in representative_comments])
+        
+        prompt = f"""
+        You are an Expert Amharic Social Media Intelligence Engine. 
+        Task: Analyze these YouTube comments and sentiment stats to provide deep intelligence.
+        
+        Input Data:
+        - Sentiment Stats (from LSTM model): {positive} Positive, {negative} Negative, {neutral} Neutral.
+        - Representative Comments for Context:
+        {comments_text}
+        
+        Instructions:
+        1. Analyze the cultural and linguistic context of the Amharic comments.
+        2. If comments contain religious blessings (e.g., "Amen", "May God bless you"), classify them as high-passion Positive.
+        3. Determine the core "vibe" (e.g., celebratory, critical, informative).
+        
+        Output Format (STRICT JSON):
+        Return a JSON object with exactly these keys:
+        - "summary": A 2-sentence executive summary in Amharic about the audience's mood.
+        - "themes": A list of 3-4 recurring themes or topics in Amharic.
+        - "recommendations": A list of 3 actionable tips for the creator in Amharic.
+        - "ai_virality_adjustment": A number between -20 and +20 based on engagement intensity.
+        - "sample_analysis": A list of objects for the FIRST 10 comments in the context list. Each object must have:
+            - "text": Original text.
+            - "sentiment": "Positive", "Negative", or "Neutral".
+            - "emotion": "Joy", "Anger", "Sadness", "Fear", "Surprise", or "Neutral".
+        
+        Return ONLY the JSON object.
+        """
+        
         response = gem_model.generate_content(prompt)
-        content = response.text
+        content = response.text.strip()
+        
+        # Robust JSON extraction
         if "```json" in content:
             content = content.split("```json")[1].split("```")[0].strip()
         elif "```" in content:
             content = content.split("```")[1].split("```")[0].strip()
+            
+        intelligence = json.loads(content)
+        print("Gemini Intelligence generated successfully.")
+        return intelligence
         
-        return json.loads(content)
     except Exception as e:
-        print(f"Gemini Intelligence Error: {e}")
+        print(f"Gemini Intelligence Error: {str(e)}")
         return {
-            "summary": "Intelligence generation encountered an error.",
-            "themes": ["Error in theme extraction"],
-            "recommendations": ["Ensure API key is valid"],
+            "summary": "Intelligence generation encountered an error. Please check API quota or connectivity.",
+            "themes": ["Error in analysis"],
+            "recommendations": ["Retry analysis later"],
             "ai_virality_adjustment": 0,
-            "sample_analysis": [{"text": c, "sentiment": "Neutral", "emotion": "Neutral"} for c in raw_comments[:10]]
+            "sample_analysis": [{"text": c[:50] + "...", "sentiment": "Neutral", "emotion": "Neutral"} for c in raw_comments[:10]]
         }
 
 def process_single_video(url: str, max_comments: int):
@@ -241,6 +265,10 @@ async def compare_videos(request: CompareRequest):
         "ranked_videos": ranked_results,
         "errors": [r for r in comparison_results if "error" in r]
     }
+
+@app.on_event("startup")
+async def startup_event():
+    print("Intelligence Engine is ready on port 8004!")
 
 @app.get("/")
 def health_check():
