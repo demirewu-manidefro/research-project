@@ -171,13 +171,28 @@ def process_single_video(url: str, max_comments: int):
     total = len(sentiments) or 1
     
     # Get Intelligent Insights and AI-powered comment analysis for samples
-    intelligence = get_gemini_intelligence(positive_count, negative_count, neutral_count, comments[:15])
+    intelligence = get_gemini_intelligence(positive_count, negative_count, neutral_count, comments[:25])
     
     # Intelligent Virality Score
     base_virality = int((positive_count / total) * 100)
     virality_score = base_virality + intelligence.get("ai_virality_adjustment", 0)
     virality_score = max(0, min(100, virality_score))
     
+    # Real-world adjustment: If Gemini detects high positive sentiment in samples 
+    # that LSTM missed (like religious blessings), we adjust the counts for display.
+    ai_samples = intelligence.get("sample_analysis", [])
+    ai_pos = sum(1 for s in ai_samples if s['sentiment'] == 'Positive')
+    ai_neg = sum(1 for s in ai_samples if s['sentiment'] == 'Negative')
+    
+    # If AI detects significantly more positivity in the sample than LSTM
+    if len(ai_samples) > 0:
+        ai_pos_ratio = ai_pos / len(ai_samples)
+        lstm_pos_ratio = positive_count / total
+        if ai_pos_ratio > lstm_pos_ratio + 0.2:
+            # Boost positive count to reflect AI's deeper understanding
+            positive_count = int(total * ai_pos_ratio)
+            neutral_count = total - positive_count - negative_count
+
     negative_ratio = negative_count / total
     alert = "Warning: Toxicity Spikes Detected!" if negative_ratio > 0.4 else None
     
