@@ -75,14 +75,45 @@ def fetch_real_youtube_comments(youtube_url: str, max_comments: int = 500):
         print(f"YouTube Fetch Error: {e}")
         raise HTTPException(status_code=400, detail="Could not fetch comments. Make sure the video is public and has comments enabled.")
 
+import re
+
+# Comprehensive Amharic Stopwords List from research_project.ipynb
+AMHARIC_STOPWORDS = {
+    "እና", "ወደ", "ከ", "ስለ", "ነው", "ነበር", "ጋር", "ደግሞ", "ብቻ", "ወዘተ", "ላይ", "ውስጥ", "በ", "እንጂ", "እንደ", "ነገር", "ግን", "ሁሉ", "አንድ", "ይህ", "ጋር", "ገና", "በኋላ",
+    "ማነው", "ማን", "ምንም", "ምንድን", "ምናልባት", "እስከ", "እስከዚህ", "እስከዚያ", "እዚህ", "እዚያ", "እነዚህ", "እነዚያ", "እኔ", "አንተ", "አንቺ", "እሱ", "እሷ", "እኛ", "እናንተ", "እነሱ",
+    "ናት", "ናቸው", "ነን", "ነህ", "ነሽ", "ነኝ", "ነበረ", "ነበሩ", "ነበረች", "የሆነ", "የሆኑ", "የሆነች", "ወይም", "ወይስ", "ቢሆንም", "በጣም", "አይደለም", "አይደሉም", "አይደለችም", 
+    "ለ", "መሆኑን", "መሆኑ", "ማለት", "ሊሆን", "ሊሆኑ", "አሁን", "ብለዋል", "እንደነበር", "ይህም", "ብለው", "ነገሩ", "ሌሎች", "ጋር", "መሆኑን", "መሆናቸውን"
+}
+
 def clean_amharic_text(text):
+    """
+    Advanced Amharic Text Cleaning (aligned with research_project.ipynb up to Cell 22)
+    """
     text = str(text)
-    # Remove URLs
-    text = re.sub(r'https?://\S+|www\.\S+', '', text)
-    # Remove @mentions and #hashtags
+    
+    # 1. URL Removal (Cell 10)
+    text = re.sub(r'https?://[^ \s]+|www\.[^ \s]+', '', text)
+    
+    # 2. Tag Removal: @mentions and #hashtags (Cell 13)
     text = re.sub(r'@\w+|#\w+', '', text)
-    # Remove extra whitespace and newlines
+    
+    # 3. Number Removal (Cell 17)
+    text = re.sub(r'\d+', '', text)
+    
+    # 4. Filter: Keep ONLY Amharic characters, emojis, and whitespace (Cell 18)
+    # Amharic range: \u1200-\u137F
+    # Emoji ranges: \U00010000-\U0010FFFF, \u2600-\u27BF
+    pattern = r'[^\u1200-\u137F\s\U00010000-\U0010FFFF\u2600-\u27BF]'
+    text = re.sub(pattern, '', text)
+    
+    # 5. Stopword Removal (Cell 20)
+    words = text.split()
+    cleaned_words = [word for word in words if word not in AMHARIC_STOPWORDS]
+    text = ' '.join(cleaned_words)
+    
+    # 6. Final whitespace cleanup
     text = ' '.join(text.split())
+    
     return text
 
 def predict_sentiment(texts):
