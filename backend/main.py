@@ -75,12 +75,23 @@ def fetch_real_youtube_comments(youtube_url: str, max_comments: int = 500):
         print(f"YouTube Fetch Error: {e}")
         raise HTTPException(status_code=400, detail="Could not fetch comments. Make sure the video is public and has comments enabled.")
 
+def clean_amharic_text(text):
+    text = str(text)
+    # Remove URLs
+    text = re.sub(r'https?://\S+|www\.\S+', '', text)
+    # Remove @mentions and #hashtags
+    text = re.sub(r'@\w+|#\w+', '', text)
+    # Remove extra whitespace and newlines
+    text = ' '.join(text.split())
+    return text
+
 def predict_sentiment(texts):
     if not model or not tokenizer:
         return [np.random.choice(["Positive", "Negative", "Neutral"]) for _ in texts]
     
-    # Real Model Inference
-    sequences = tokenizer.texts_to_sequences(texts)
+    # Real Model Inference with Cleaning
+    cleaned_texts = [clean_amharic_text(t) for t in texts]
+    sequences = tokenizer.texts_to_sequences(cleaned_texts)
     # Most Jupyter-trained LSTMs use padding, assuming 100 from earlier tests.
     padded = pad_sequences(sequences, maxlen=100, padding='post', truncating='post')
     predictions = model.predict(padded)
