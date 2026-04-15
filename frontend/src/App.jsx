@@ -22,7 +22,7 @@ function App() {
     setError(null);
     setData(null);
     try {
-      const response = await axios.post('http://127.0.0.1:8004/api/analyze', {
+      const response = await axios.post('http://127.0.0.1:8005/api/analyze', {
         youtube_url: url,
         max_comments: 500
       });
@@ -46,7 +46,7 @@ function App() {
     setError(null);
     setCompareData(null);
     try {
-      const response = await axios.post('http://127.0.0.1:8004/api/compare', {
+      const response = await axios.post('http://127.0.0.1:8005/api/compare', {
         youtube_urls: urls,
         max_comments: 50 // less comments for speed on multiple
       });
